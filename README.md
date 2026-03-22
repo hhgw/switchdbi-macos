@@ -4,7 +4,6 @@
 项目起因是：在 macOS 上需要一个更顺手的工具，把 `.nsp/.nsz/.xci/.xcz` 等文件通过 `DBI backend` 方式传输到 Switch（Switch 端开启 DBI 传输）。
 
 本项目核心是 `switch_dbi_installer.py`，但整体目标是提供一套“开箱可用”的目录结构、配置和使用流程，而不是只给一个脚本。
-本项目完全由codex生成，本人只通过prompt提出修改完善需求。
 
 ---
 
@@ -17,7 +16,7 @@
 - CLI 模式：适合批处理或自动化
 - 配置文件：统一管理 Python 与 `dbibackend` 路径
 - 文件安全校验：过滤后缀、去重、同名冲突检测（避免 DBI backend 覆盖）
-- 依赖检查：启动前检查 `pyusb` / `tkinter` 环境
+- 依赖检查：启动前检查 `pyusb` / `libusb` / `tkinter` 环境
 
 默认支持后缀：
 - `.nsp`
@@ -50,10 +49,21 @@ git clone <your-repo-url>
 cd SwitchDbiMacos
 ```
 
-2. 安装依赖
+2. 安装依赖（`pyusb` + `libusb`）
 
 ```bash
+# 先安装系统层 USB backend（macOS）
+brew install libusb
+
+# 再安装 Python 包
 python3 -m pip install pyusb
+```
+
+如果你使用 conda 环境（推荐在同一环境内安装）：
+
+```bash
+conda activate myenv
+conda install -c conda-forge libusb pyusb
 ```
 
 如果你希望 GUI 支持拖拽文件，再安装：
@@ -88,7 +98,7 @@ python3 switch_dbi_installer.py
 系统与运行环境：
 - 操作系统：`macOS`（主要目标）或 `Linux`
 - Python：建议 `3.9+`
-- 必需依赖：`pyusb`
+- 必需依赖：`pyusb` + `libusb`（`pyusb` 本身不包含 backend）
 - GUI 依赖：`tkinter`（通常系统 Python 已带）
 - 可选依赖：`tkinterdnd2`（仅用于拖拽体验）
 
@@ -174,6 +184,15 @@ python3 -m pip install pyusb
 ```
 
 并确认 `python_path` 与你安装依赖时用的是同一个 Python 环境。
+
+### `usb.core.NoBackendError: No backend available`
+
+这是 `pyusb` 找不到 `libusb` backend，通常不是脚本逻辑问题。按顺序检查：
+
+1. 安装 `libusb`（`brew install libusb` 或 `conda install -c conda-forge libusb`）。
+2. 确认在 `config.json -> python_path` 对应的同一 Python 环境里安装了 `pyusb`。
+3. 若仍报错，检查架构是否混用（Apple Silicon 常见）：`python -c "import platform; print(platform.machine())"` 与 `uname -m` 应一致。
+4. 可快速自检：`python -c "import usb.core; print(usb.core.find(find_all=True))"`（不应再出现 `NoBackendError`）。
 
 ### 没有可安装文件
 
