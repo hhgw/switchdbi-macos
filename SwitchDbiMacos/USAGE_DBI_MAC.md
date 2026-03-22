@@ -11,10 +11,21 @@ git clone <your-repo-url>
 cd SwitchDbiMacos
 ```
 
-2. 安装 Python 依赖：
+2. 安装依赖（必须包含 `libusb`）：
 
 ```bash
+# macOS 系统层 USB backend
+brew install libusb
+
+# Python 层封装
 python3 -m pip install pyusb
+```
+
+如果你使用 conda 虚拟环境，建议在同一环境安装：
+
+```bash
+conda activate myenv
+conda install -c conda-forge libusb pyusb
 ```
 
 > 如果你想启用拖拽功能，安装：
@@ -80,4 +91,5 @@ python3 switch_dbi_installer.py ~/Downloads/switch_games --recursive --dry-run -
 
 - 找不到 `dbibackend`：请检查 `backend_path` 是否正确，或使用 `--backend` 覆盖。
 - 找不到 Python：请检查 `python_path` 是否可执行，或使用 `--python` 覆盖。
+- 报错 `usb.core.NoBackendError: No backend available`：说明只装了 `pyusb` 但 `libusb` 不可用，或当前 Python 环境加载不到 `libusb`。先安装 `libusb`，再确认 `python_path` 指向安装了 `pyusb` 的同一环境。
 - 无可安装文件：请确认文件存在且后缀合法，或启用 `--include-unsupported`。
